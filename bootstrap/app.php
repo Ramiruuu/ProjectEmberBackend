@@ -17,8 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(HandleCors::class);
         
         // Add Sanctum for API authentication
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        // Removed EnsureFrontendRequestsAreStateful for token-based API
+        
+        $middleware->alias([
+            'auth.api' => \App\Http\Middleware\ApiAuthenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

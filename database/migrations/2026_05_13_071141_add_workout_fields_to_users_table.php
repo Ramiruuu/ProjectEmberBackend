@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->decimal('weight_kg', 5, 2)->nullable();
+            $table->integer('age')->nullable();
+            $table->enum('gender', ['male', 'female'])->nullable();
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn(['weight_kg', 'age', 'gender']);
         });
     }
 };

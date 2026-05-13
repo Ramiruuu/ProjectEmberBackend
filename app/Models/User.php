@@ -22,6 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'weight_kg',
+        'age',
+        'gender',
     ];
 
     /**
@@ -45,5 +48,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the workouts for the user.
+     */
+    public function workouts()
+    {
+        return $this->hasMany(Workout::class);
     }
 }

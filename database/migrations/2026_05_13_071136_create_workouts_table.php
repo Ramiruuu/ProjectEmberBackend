@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('workouts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('type', ['run', 'gym']);
+            $table->string('activity_name');
+            $table->integer('duration_minutes');
+            $table->decimal('calories_burned', 8, 2);
+            $table->json('details')->nullable();
+            $table->date('workout_date');
             $table->timestamps();
         });
     }
