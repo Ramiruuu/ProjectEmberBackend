@@ -75,10 +75,23 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    public function logout(Request $request)
+    public function update(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
 
-        return response()->json(['message' => 'Logged out successfully']);
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|string|max:255',
+            'weight_kg' => 'sometimes|numeric|min:30|max:300',
+            'age' => 'sometimes|integer|min:13|max:120',
+            'gender' => 'sometimes|in:male,female',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user->update($request->only(['name', 'weight_kg', 'age', 'gender']));
+
+        return response()->json($user);
     }
 }
