@@ -42,6 +42,37 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[Redberry](https://redberry.international/laravel-development)**
 - **[Active Logic](https://activelogic.com)**
 
+## Supabase Integration
+
+This project now synchronizes workout entries to a Supabase cloud table when workouts are created, updated, or deleted.
+This provides a second independent system for your PIT requirements without replacing the existing Laravel API.
+
+### Setup
+
+Add these values to `backend/.env`:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_WORKOUTS_TABLE=workout_logs`
+
+### Recommended Supabase table schema
+
+Create a table such as `workout_logs` with these columns:
+
+- `id` (primary key)
+- `source_workout_id` (integer)
+- `user_id` (integer)
+- `user_email` (text)
+- `type` (text)
+- `activity_name` (text)
+- `duration_minutes` (integer)
+- `calories_burned` (numeric)
+- `details` (jsonb)
+- `workout_date` (date)
+- `created_at` (timestamp)
+
+The backend will send workout records to this table using the Supabase REST API so you can demonstrate integration with a free Supabase service.
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).

@@ -6,6 +6,7 @@ use App\Models\Workout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class WorkoutController extends Controller
 {
@@ -50,6 +51,8 @@ class WorkoutController extends Controller
             'workout_date' => $request->workout_date,
         ]);
 
+        $this->syncWorkoutToSupabase($workout);
+
         return response()->json($workout, 201);
     }
 
@@ -86,6 +89,8 @@ class WorkoutController extends Controller
             'workout_date' => $request->workout_date,
         ]);
 
+        $this->syncWorkoutToSupabase($workout);
+
         return response()->json($workout, 201);
     }
 
@@ -120,6 +125,8 @@ class WorkoutController extends Controller
             'workout_date' => $request->workout_date,
         ]);
 
+        $this->syncWorkoutToSupabase($workout);
+
         return response()->json($workout);
     }
 
@@ -130,6 +137,8 @@ class WorkoutController extends Controller
         if (!$workout) {
             return response()->json(['message' => 'Workout not found'], 404);
         }
+
+        $this->deleteWorkoutFromSupabase($workout);
 
         $workout->delete();
 
@@ -157,5 +166,58 @@ class WorkoutController extends Controller
             'running' => round($runningAvg, 2),
             'gym' => round($gymAvg, 2),
         ]);
+    }
+
+    private function syncWorkoutToSupabase(Workout $workout): void
+    {
+        $supabaseUrl = config('services.supabase.url');
+        $serviceKey = config('services.supabase.service_role_key');
+        $table = config('services.supabase.workouts_table', 'workout_logs');
+
+        if (!$supabaseUrl || !$serviceKey) {
+            return;
+        }
+
+        try {
+            Http::withHeaders([
+                'apikey' => $serviceKey,
+                'Authorization' => "Bearer {$serviceKey}",
+                'Content-Type' => 'application/json',
+                'Prefer' => 'return=representation',
+            ])->post(rtrim($supabaseUrl, '/') . "/rest/v1/{$table}", [[
+                'source_workout_id' => $workout->id,
+                'user_id' => $workout->user_id,
+                'user_email' => $workout->user?->email,
+                'type' => $workout->type,
+                'activity_name' => $workout->activity_name,
+                'duration_minutes' => $workout->duration_minutes,
+                'calories_burned' => $workout->calories_burned,
+                'details' => $workout->details ?: [],
+                'workout_date' => $workout->workout_date?->toDateString(),
+            ]]);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+    }
+
+    private function deleteWorkoutFromSupabase(Workout $workout): void
+    {
+        $supabaseUrl = config('services.supabase.url');
+        $serviceKey = config('services.supabase.service_role_key');
+        $table = config('services.supabase.workouts_table', 'workout_logs');
+
+        if (!$supabaseUrl || !$serviceKey) {
+            return;
+        }
+
+        try {
+            Http::withHeaders([
+                'apikey' => $serviceKey,
+                'Authorization' => "Bearer {$serviceKey}",
+                'Content-Type' => 'application/json',
+            ])->delete(rtrim($supabaseUrl, '/') . "/rest/v1/{$table}?source_workout_id=eq.{$workout->id}");
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
     }
 }
