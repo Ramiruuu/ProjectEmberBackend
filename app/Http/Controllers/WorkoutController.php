@@ -168,6 +168,39 @@ class WorkoutController extends Controller
         ]);
     }
 
+    public function testSupabaseConnection(Request $request)
+    {
+        $supabaseUrl = config('services.supabase.url');
+        $serviceKey = config('services.supabase.service_role_key');
+        $table = config('services.supabase.workouts_table', 'workout_logs');
+
+        if (!$supabaseUrl || !$serviceKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Supabase configuration is missing.',
+            ], 500);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'apikey' => $serviceKey,
+                'Authorization' => "Bearer {$serviceKey}",
+                'Content-Type' => 'application/json',
+            ])->get(rtrim($supabaseUrl, '/') . "/rest/v1/{$table}?select=*&limit=5");
+
+            return response()->json([
+                'success' => true,
+                'status' => $response->status(),
+                'data' => $response->json(),
+            ], $response->status());
+        } catch (\Throwable $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+            ], 500);
+        }
+    }
+
     private function syncWorkoutToSupabase(Workout $workout): void
     {
         $supabaseUrl = config('services.supabase.url');

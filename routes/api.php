@@ -19,4 +19,5 @@ Route::middleware('auth.api:sanctum')->group(function () {
     Route::delete('/workouts/{id}', [WorkoutController::class, 'destroy']);
     
     Route::get('/comparison', [WorkoutController::class, 'getCalorieComparison']);
+    Route::get('/supabase/test', [WorkoutController::class, 'testSupabaseConnection']);
 });
